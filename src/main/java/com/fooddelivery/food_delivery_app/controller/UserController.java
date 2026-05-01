@@ -1,5 +1,6 @@
 package com.fooddelivery.food_delivery_app.controller;
 
+import com.fooddelivery.food_delivery_app.dto.LoginRequest;
 import com.fooddelivery.food_delivery_app.dto.UserRegistrationRequest;
 import com.fooddelivery.food_delivery_app.service.UserService;
 import jakarta.validation.Valid;
@@ -19,6 +20,12 @@ public class UserController {
         return ResponseEntity.ok(response);
 
         }
+    @PostMapping("/login")
+    public String  login(@Valid @RequestBody LoginRequest request){
+        String response = userService.login(request);
+        return response;
+        }
+
     }
 /*
 @RestController — this class handles incoming API requests
