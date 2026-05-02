@@ -1,42 +1,47 @@
 package com.fooddelivery.food_delivery_app.config;
 
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-           http
+        http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
-                );
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
-                return http.build();
+        return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
-/*
-Understand what this does:
-@Configuration — tells Spring this is a configuration class
-@EnableWebSecurity — enables Spring Security
-.csrf(csrf -> csrf.disable()) — disables CSRF for now so we can test with Postman
-.requestMatchers("/api/auth/**").permitAll() — allows register and login APIs without authentication
-.anyRequest().authenticated() — all other APIs need a valid token
-BCryptPasswordEncoder — this is the password encryption bean that UserService uses
- */
+
+/*SessionCreationPolicy.STATELESS — tells Spring not to create sessions. We use JWT tokens instead of sessions. Every request must carry its own token.
+addFilterBefore(jwtAuthFilter, ...) — tells Spring to run our JwtAuthFilter before the default authentication filter. So our filter checks the token first!*/

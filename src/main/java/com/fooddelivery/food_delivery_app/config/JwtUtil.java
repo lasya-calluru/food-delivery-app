@@ -44,6 +44,14 @@ public class JwtUtil {
             return false;
         }
     }
+    /*
+    @Value("${jwt.secret}")
+private String secretKey;
+
+private Key getSigningKey() {
+    return Keys.hmacShaKeyFor(secretKey.getBytes());
+}
+     */
 }
 
 
